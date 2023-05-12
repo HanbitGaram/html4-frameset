@@ -245,6 +245,9 @@ $template = <<<HTML
             </tr>
             {$animeList}
        </table>
+       <hr />
+        Copyright 한빛가람 All Rights Reserved. <br />
+        전자우편 : <a href="mailto:github.external@netko.kr">github.external@netko.kr</a>
     </body>
 </html>
 HTML;
