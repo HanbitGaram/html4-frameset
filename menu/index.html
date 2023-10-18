@@ -14,28 +14,28 @@
         li{margin-top:8px}
     </style>
     <script>
-        var audioCanPlay = false;
-        var audio = document.createElement('video');
-        audio.muted = true;
-        audio.src = 'https://listen.moe/fallback';
-        audio.preload = "auto";
-        audio.autoplay = true;
-        audio.volume = 0.3;
-        document.addEventListener('click', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
-        document.addEventListener('focus', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
-        document.addEventListener('mousemove', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
-        document.addEventListener('mouseover', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
-        document.addEventListener('mouseenter', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
-        audio.addEventListener('loadeddata', function(){audio.play();});
-        audio.addEventListener('loadstart', function(){audio.play();});
-        audio.addEventListener('progress', function(){
-            try{audio.muted = false;}catch(e){}
-            audioCanPlay = true;
-        });
-        function playing(){
-            audio.play();
-            audio.muted = false;
-        }
+        // var audioCanPlay = false;
+        // var audio = document.createElement('video');
+        // audio.muted = true;
+        // audio.src = 'https://listen.moe/fallback';
+        // audio.preload = "auto";
+        // audio.autoplay = true;
+        // audio.volume = 0.3;
+        // document.addEventListener('click', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
+        // document.addEventListener('focus', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
+        // document.addEventListener('mousemove', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
+        // document.addEventListener('mouseover', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
+        // document.addEventListener('mouseenter', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
+        // audio.addEventListener('loadeddata', function(){audio.play();});
+        // audio.addEventListener('loadstart', function(){audio.play();});
+        // audio.addEventListener('progress', function(){
+        //     try{audio.muted = false;}catch(e){}
+        //     audioCanPlay = true;
+        // });
+        // function playing(){
+        //     audio.play();
+        //     audio.muted = false;
+        // }
     </script>
 </head>
 <body>
