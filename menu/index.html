@@ -13,13 +13,32 @@
         * {cursor: url(../content/assets/cursor/ani1053.cur), auto !important;}
         li{margin-top:8px}
     </style>
+    <script>
+        var audioCanPlay = false;
+        var audio = document.createElement('video');
+        audio.muted = true;
+        audio.src = 'https://listen.moe/fallback';
+        audio.preload = "auto";
+        audio.autoplay = true;
+        audio.volume = 0.3;
+        document.addEventListener('click', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
+        document.addEventListener('focus', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
+        document.addEventListener('mousemove', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
+        document.addEventListener('mouseover', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
+        document.addEventListener('mouseenter', function(){if(audioCanPlay===true){audio.play();audio.muted=false;}});
+        audio.addEventListener('loadeddata', function(){audio.play();});
+        audio.addEventListener('loadstart', function(){audio.play();});
+        audio.addEventListener('progress', function(){
+            try{audio.muted = false;}catch(e){}
+            audioCanPlay = true;
+        });
+        function playing(){
+            audio.play();
+            audio.muted = false;
+        }
+    </script>
 </head>
 <body>
-    <!-- SCM Music Player https://www.scmplayer.net -->
-    <script type="text/javascript" src="https://www.scmplayer.net/script.js"
-            data-config="{'skin':'https://static.tumblr.com/su8juwr/a3vn0u6j9/miniskinpretolis.css','volume':50,'autoplay':true,'shuffle':false,'repeat':1,'placement':'top','showplaylist':false,'playlist':[{'title':'jpop','url':'https://listen.moe/fallback'}]}" ></script>
-    <!-- SCM Music Player script end -->
-
     <p><br /></p>
     <div id="title">
         <a href="#" onclick="parent.center.location.href='../content/index.html';"><img src="../content/assets/images/hlogo.gif?v2" alt="로고" border="0" />한빛가람</a>
@@ -51,5 +70,8 @@
         </a>
     </p>
     <center><a href="https://icp.gov.moe/?keyword=20230178" target="_blank">萌ICP备20230178号</a></center>
+<!--    <audio id="audio" controls autoplay preload>-->
+<!--        <source src="https://listen.moe/fallback" type="audio/mpeg">-->
+<!--    </audio>-->
 </body>
 </html>

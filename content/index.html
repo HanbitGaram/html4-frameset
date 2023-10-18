@@ -64,6 +64,15 @@
              alt="올바른 CSS입니다!" />
     </a>
 </p>
+<script>
+    try{
+        document.addEventListener('click', function(){if(parent.fixed.audio.muted===true){parent.fixed.playing();}});
+        document.addEventListener('focus', function(){if(parent.fixed.audio.muted===true){parent.fixed.playing();}});
+        document.addEventListener('mousemove', function(){if(parent.fixed.audio.muted===true){parent.fixed.playing();}});
+        document.addEventListener('mouseover', function(){if(parent.fixed.audio.muted===true){parent.fixed.playing();}});
+        document.addEventListener('mouseenter', function(){if(parent.fixed.audio.muted===true){parent.fixed.playing();}});
+    }catch(e){}
+</script>
 <hr />
 Copyright 한빛가람 All Rights Reserved. <br />
 전자우편 : <a href="mailto:github.external@netko.kr">github.external@netko.kr</a>
