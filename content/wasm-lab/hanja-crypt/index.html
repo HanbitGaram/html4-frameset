@@ -128,7 +128,7 @@
 
         const go = new Go();
         const res = await WebAssembly.instantiateStreaming(
-          fetch("./crypt"),
+          fetch("./crypt.wasm"),
           go.importObject
         );
         go.run(res.instance);
