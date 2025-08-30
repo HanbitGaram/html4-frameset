@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TLS Generator (WASM · RSA 2048)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Go WASM 런타임 -->
+    <script src="../wasm_exec.js"></script>
+    <meta name="color-scheme" content="dark light" />
+    <style>
+      /* 코드뷰 스크롤 가독성 */
+      pre {
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .glass {
+        backdrop-filter: blur(10px);
+        background: color-mix(in oklab, Canvas 80%, transparent);
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-full bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900 dark:from-slate-900 dark:to-slate-950 dark:text-slate-100"
+  >
+    <div class="container mx-auto max-w-6xl px-4 py-8">
+      <!-- 헤더 -->
+      <header class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight">
+          TLS Generator
+          <span class="ml-2 text-sm font-normal text-slate-500"
+            >WASM · RSA 2048</span
+          >
+        </h1>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">
+          도메인만 입력하면 RSA 2048 Key / CSR / 자체서명 CRT를 생성합니다.
+          (C=KR, ST=Seoul, L=Gangnam-gu)
+        </p>
+      </header>
+
+      <!-- 카드 레이아웃 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 입력 영역 -->
+        <section class="lg:col-span-1 glass rounded-2xl shadow p-6">
+          <form id="form" class="space-y-5">
+            <div>
+              <label class="block text-sm font-medium mb-1"
+                >도메인 <span class="text-pink-600">*</span></label
+              >
+              <input
+                id="domain"
+                type="text"
+                required
+                placeholder="example.com"
+                class="w-full rounded-xl border px-3 py-2 bg-white/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <p class="mt-1 text-xs text-slate-500">
+                Common Name 및 SAN에 사용됩니다.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1"
+                  >이메일(선택)</label
+                >
+                <input
+                  id="email"
+                  type="email"
+                  value="admin@example.com"
+                  class="w-full rounded-xl border px-3 py-2 bg-white/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">조직(선택)</label>
+                <input
+                  id="organization"
+                  type="text"
+                  value="HanbitGaram Inc"
+                  class="w-full rounded-xl border px-3 py-2 bg-white/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">부서(선택)</label>
+                <input
+                  id="department"
+                  type="text"
+                  value="Infrastructure"
+                  class="w-full rounded-xl border px-3 py-2 bg-white/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">키 길이</label>
+                <input
+                  value="RSA 2048 (고정)"
+                  disabled
+                  class="w-full rounded-xl border px-3 py-2 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">국가(C)</label>
+                <input
+                  value="KR"
+                  disabled
+                  class="w-full rounded-xl border px-3 py-2 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">지역(ST)</label>
+                <input
+                  value="Seoul"
+                  disabled
+                  class="w-full rounded-xl border px-3 py-2 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1"
+                  >시/군/구(L)</label
+                >
+                <input
+                  value="Gangnam-gu"
+                  disabled
+                  class="w-full rounded-xl border px-3 py-2 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
+                />
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
+              <button
+                id="btn-generate"
+                type="submit"
+                class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 font-medium shadow"
+              >
+                <svg
+                  id="spin"
+                  class="hidden h-4 w-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    d="M4 12a8 8 0 018-8v4A4 4 0 004 12z"
+                    fill="currentColor"
+                  />
+                </svg>
+                생성
+              </button>
+              <button
+                id="btn-download-all"
+                type="button"
+                class="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                모두 다운로드
+              </button>
+              <span id="status" class="text-sm text-slate-500"></span>
+            </div>
+          </form>
+          <p class="mt-4 text-xs text-slate-500">
+            ⚠️ 생성되는 인증서는 <b>자체서명(Self-signed)</b>입니다. 운영
+            환경에서는 CSR을 인증기관(CA)에 제출해 발급받은 CRT로 교체하세요.
+          </p>
+        </section>
+
+        <!-- 결과 영역 -->
+        <section class="lg:col-span-2 grid grid-cols-1 gap-6">
+          <!-- Key -->
+          <div class="glass rounded-2xl shadow p-6">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-lg font-semibold">Private Key (.key)</h2>
+              <div class="flex gap-2">
+                <button
+                  data-copy="key"
+                  class="btn-copy rounded-lg px-3 py-1.5 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  복사
+                </button>
+                <button
+                  data-dl="key"
+                  class="btn-dl rounded-lg px-3 py-1.5 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  다운로드
+                </button>
+              </div>
+            </div>
+            <pre
+              id="out-key"
+              class="min-h-[160px] rounded-xl bg-slate-950/90 text-slate-100 p-4 overflow-auto"
+            ></pre>
+          </div>
+
+          <!-- CSR -->
+          <div class="glass rounded-2xl shadow p-6">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-lg font-semibold">
+                Certificate Signing Request (.csr)
+              </h2>
+              <div class="flex gap-2">
+                <button
+                  data-copy="csr"
+                  class="btn-copy rounded-lg px-3 py-1.5 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  복사
+                </button>
+                <button
+                  data-dl="csr"
+                  class="btn-dl rounded-lg px-3 py-1.5 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  다운로드
+                </button>
+              </div>
+            </div>
+            <pre
+              id="out-csr"
+              class="min-h-[160px] rounded-xl bg-slate-950/90 text-slate-100 p-4 overflow-auto"
+            ></pre>
+          </div>
+
+          <!-- CRT -->
+          <div class="glass rounded-2xl shadow p-6">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-lg font-semibold">
+                Self-signed Certificate (.crt)
+              </h2>
+              <div class="flex gap-2">
+                <button
+                  data-copy="crt"
+                  class="btn-copy rounded-lg px-3 py-1.5 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  복사
+                </button>
+                <button
+                  data-dl="crt"
+                  class="btn-dl rounded-lg px-3 py-1.5 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  다운로드
+                </button>
+              </div>
+            </div>
+            <pre
+              id="out-crt"
+              class="min-h-[160px] rounded-xl bg-slate-950/90 text-slate-100 p-4 overflow-auto"
+            ></pre>
+          </div>
+        </section>
+      </div>
+
+      <!-- 토스트 -->
+      <div
+        id="toast"
+        class="fixed bottom-4 left-1/2 -translate-x-1/2 hidden rounded-xl px-4 py-2 bg-slate-900 text-white shadow-lg text-sm"
+      ></div>
+    </div>
+    <script>
+      (async () => {
+        if (!WebAssembly.instantiateStreaming) {
+          // polyfill
+          WebAssembly.instantiateStreaming = async (resp, importObject) => {
+            const source = await (await resp).arrayBuffer();
+            return await WebAssembly.instantiate(source, importObject);
+          };
+        }
+
+        const go = new Go();
+        let wasmReady = false;
+        let lastResult = null;
+
+        async function initWasm() {
+          const resp = await fetch("./tls.wasm");
+          const source = await resp.arrayBuffer();
+          const { instance } = await WebAssembly.instantiate(
+            source,
+            go.importObject
+          );
+          go.run(instance);
+          wasmReady = true;
+          setStatus("WASM 로드 완료");
+        }
+
+        function setStatus(msg, ok = true) {
+          const el = document.getElementById("status");
+          el.textContent = msg || "";
+          el.className = ok
+            ? "text-sm text-emerald-600"
+            : "text-sm text-pink-600";
+        }
+
+        function toast(msg) {
+          const t = document.getElementById("toast");
+          t.textContent = msg;
+          t.classList.remove("hidden");
+          setTimeout(() => t.classList.add("hidden"), 1600);
+        }
+
+        function getInputs() {
+          return {
+            domain: document.getElementById("domain").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            organization: document.getElementById("organization").value.trim(),
+            department: document.getElementById("department").value.trim(),
+          };
+        }
+
+        function setLoading(loading) {
+          document.getElementById("btn-generate").disabled = loading;
+          document.getElementById("btn-download-all").disabled = loading;
+          document.getElementById("spin").classList.toggle("hidden", !loading);
+        }
+
+        function showOutputs(obj) {
+          document.getElementById("out-key").textContent =
+            obj.privateKeyPEM || "";
+          document.getElementById("out-csr").textContent = obj.csrPEM || "";
+          document.getElementById("out-crt").textContent =
+            obj.certificatePEM || "";
+        }
+
+        function downloadText(filename, content) {
+          const blob = new Blob([content], { type: "application/x-pem-file" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        }
+
+        function currentFilenames(domain) {
+          return {
+            key: (domain || "cert") + ".key",
+            csr: (domain || "cert") + ".csr",
+            crt: (domain || "cert") + ".crt",
+          };
+        }
+
+        // 이벤트
+        document
+          .getElementById("form")
+          .addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (!wasmReady) {
+              setStatus("WASM 로딩 중… 잠시만요", false);
+              return;
+            }
+            setLoading(true);
+            setStatus("생성 중…");
+            try {
+              // UI 반영 시간을 한 틱 줘서 스피너 보이게
+              await new Promise((r) => setTimeout(r));
+              const opts = getInputs();
+              const res = window.GenerateTLS(opts);
+              if (res.error) throw new Error(res.error);
+              lastResult = res;
+              showOutputs(res);
+              setStatus("생성 완료");
+              toast("생성 완료");
+            } catch (err) {
+              console.error(err);
+              setStatus(err.message || "에러 발생", false);
+              toast("에러: " + (err.message || "unknown"));
+            } finally {
+              setLoading(false);
+            }
+          });
+
+        document
+          .getElementById("btn-download-all")
+          .addEventListener("click", () => {
+            if (!wasmReady) return toast("WASM 준비중");
+            const opts = getInputs();
+            // Go 측 다운로드 함수를 활용 (파일명 포함)
+            const res = window.GenerateAndDownloadTLS(opts);
+            if (res && res.error) {
+              setStatus(res.error, false);
+              toast("에러: " + res.error);
+            } else {
+              toast("3개 파일 다운로드 시작");
+            }
+          });
+
+        document.querySelectorAll(".btn-copy").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const kind = btn.getAttribute("data-copy");
+            const text =
+              document.getElementById("out-" + kind).textContent || "";
+            if (!text) return toast("내용이 없습니다");
+            try {
+              await navigator.clipboard.writeText(text);
+              toast("복사됨");
+            } catch {
+              toast("클립보드 권한이 없습니다");
+            }
+          });
+        });
+
+        document.querySelectorAll(".btn-dl").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const kind = btn.getAttribute("data-dl");
+            const text =
+              document.getElementById("out-" + kind).textContent || "";
+            if (!text) return toast("내용이 없습니다");
+            const domain = document.getElementById("domain").value.trim();
+            const fns = currentFilenames(domain);
+            downloadText(fns[kind], text);
+          });
+        });
+
+        // 시작
+        initWasm().catch((err) => {
+          console.error(err);
+          setStatus("WASM 초기화 실패: " + (err.message || err), false);
+        });
+      })();
+    </script>
+  </body>
+</html>
